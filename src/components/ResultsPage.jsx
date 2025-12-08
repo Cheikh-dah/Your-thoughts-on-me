@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 import { db } from '../firebase';
 import ResultsView from './ResultsView';
 
@@ -45,26 +45,33 @@ const ResultsPage = () => {
 
     const fetchRatings = useCallback(async () => {
         try {
-            const querySnapshot = await getDocs(collection(db, "ratings"));
+            console.log("Fetching ratings from Firebase...");
+            const snapshot = await get(ref(db, "ratings"));
             let total = { humble: 0, considerate: 0, kind: 0, smart: 0 };
             let count = 0;
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const humble = normalize(data.humble);
-                const considerate = normalize(data.considerate);
-                const kind = normalize(data.kind);
-                const smart = normalize(data.smart);
-                const isValid = [humble, considerate, kind, smart].every((v) => v !== null);
+            if (snapshot.exists()) {
+                const ratingsData = snapshot.val();
+                console.log("Ratings data from Firebase:", ratingsData);
+                // Realtime Database returns an object with keys
+                Object.values(ratingsData).forEach((data) => {
+                    const humble = normalize(data.humble);
+                    const considerate = normalize(data.considerate);
+                    const kind = normalize(data.kind);
+                    const smart = normalize(data.smart);
+                    const isValid = [humble, considerate, kind, smart].every((v) => v !== null);
 
-                if (isValid) {
-                    total.humble += humble;
-                    total.considerate += considerate;
-                    total.kind += kind;
-                    total.smart += smart;
-                    count++;
-                }
-            });
+                    if (isValid) {
+                        total.humble += humble;
+                        total.considerate += considerate;
+                        total.kind += kind;
+                        total.smart += smart;
+                        count++;
+                    }
+                });
+            }
+
+            console.log(`Total count: ${count}, Totals:`, total);
 
             if (count > 0) {
                 const newRatings = {
@@ -74,14 +81,24 @@ const ResultsPage = () => {
                     smart: Math.round(total.smart / count),
                 };
 
+                console.log("New average ratings:", newRatings);
                 setAverageRatings(newRatings);
 
                 // Cache the results
                 localStorage.setItem('generalRatings', JSON.stringify(newRatings));
                 localStorage.setItem('ratingsTimestamp', Date.now().toString());
+            } else {
+                // If no data from database, clear cache and use defaults
+                localStorage.removeItem('generalRatings');
+                localStorage.removeItem('ratingsTimestamp');
+                setAverageRatings({ humble: 50, considerate: 50, kind: 50, smart: 50 });
             }
         } catch (error) {
             console.error("Error fetching ratings:", error);
+            // On error, clear cache to force fresh data on next load
+            localStorage.removeItem('generalRatings');
+            localStorage.removeItem('ratingsTimestamp');
+            setAverageRatings({ humble: 50, considerate: 50, kind: 50, smart: 50 });
         }
     }, []);
 
@@ -89,10 +106,28 @@ const ResultsPage = () => {
         fetchRatings();
     }, [fetchRatings]);
 
+    const handleRefresh = () => {
+        // Clear cache and force fresh fetch
+        localStorage.removeItem('generalRatings');
+        localStorage.removeItem('ratingsTimestamp');
+        fetchRatings();
+    };
+
     return (
         <div className="results-page">
             <h2>التقيم العام</h2>
             <ResultsView userRatings={null} generalRatingsOverride={averageRatings} />
+            <button 
+                className="submit-btn" 
+                onClick={handleRefresh}
+                style={{ 
+                    marginTop: '2rem',
+                    fontSize: '0.9rem',
+                    padding: '0.6rem 1.5rem'
+                }}
+            >
+                تحديث النتائج
+            </button>
         </div>
     );
 };

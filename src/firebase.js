@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore } from "firebase/firestore";
+import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -10,7 +10,8 @@ const firebaseConfig = {
     storageBucket: "youthinksonchd.firebasestorage.app",
     messagingSenderId: "414715021378",
     appId: "1:414715021378:web:dda60221727150f9aa45db",
-    measurementId: "G-43B06864G0"
+    measurementId: "G-43B06864G0",
+    databaseURL: "https://youthinksonchd-default-rtdb.firebaseio.com/"
 };
 
 // Initialize Firebase
@@ -24,4 +25,4 @@ try {
     console.warn("Analytics initialization failed:", error);
 }
 
-export const db = getFirestore(app);
+export const db = getDatabase(app);

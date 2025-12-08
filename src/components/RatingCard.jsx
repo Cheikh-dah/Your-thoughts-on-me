@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import { ref, push } from 'firebase/database';
 import { db } from '../firebase';
 import Slider from './Slider';
 import './RatingCard.css';
@@ -40,15 +40,15 @@ const RatingCard = ({ onVoteComplete }) => {
                 console.log("onVoteComplete callback completed");
             }
             
-            // Save to Firestore in the background (non-blocking)
+            // Save to Realtime Database in the background (non-blocking)
             // This way if Firebase is slow or fails, the user still sees their results
-            addDoc(collection(db, "ratings"), {
+            push(ref(db, "ratings"), {
                 ...ratings,
-                timestamp: new Date(),
+                timestamp: Date.now(),
                 deviceId: navigator.userAgent // Simple device fingerprinting
             })
-            .then((docRef) => {
-                console.log("Successfully saved to Firebase with ID:", docRef.id);
+            .then((ref) => {
+                console.log("Successfully saved to Firebase with key:", ref.key);
             })
             .catch((e) => {
                 console.error("Error saving to Firebase (non-critical): ", e);
