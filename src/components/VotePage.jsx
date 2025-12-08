@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -10,10 +10,7 @@ const VotePage = () => {
     const [hasVoted, setHasVoted] = useState(false);
     const [userRatings, setUserRatings] = useState(null);
     const [generalRatings, setGeneralRatings] = useState(null);
-    const [loadingResults, setLoadingResults] = useState(false);
     const [isNewVote, setIsNewVote] = useState(false);
-    const [resultsError, setResultsError] = useState(null);
-    const timeoutRef = useRef(null);
 
     useEffect(() => {
         const voted = localStorage.getItem('hasVoted');
@@ -33,7 +30,6 @@ const VotePage = () => {
                 
                 if (now - timestamp < fiveMinutes) {
                     setGeneralRatings(JSON.parse(cachedGeneralRatings));
-                    setLoadingResults(false);
                 }
             }
         }
@@ -53,16 +49,6 @@ const VotePage = () => {
     };
 
     const fetchGeneralRatings = async () => {
-        // Only show loading if we don't have cached data
-        if (!generalRatings) {
-            setLoadingResults(true);
-        }
-        setResultsError(null);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-            setResultsError('وقت التحميل طال، تحقق من الاتصال ثم أعد المحاولة.');
-        }, 7000);
-        
         try {
             const querySnapshot = await getDocs(collection(db, "ratings"));
             let total = { humble: 0, considerate: 0, kind: 0, smart: 0 };
@@ -101,10 +87,6 @@ const VotePage = () => {
             }
         } catch (error) {
             console.error("Error fetching ratings:", error);
-            setResultsError('تعذر تحميل النتائج، حاول مجدداً.');
-        } finally {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            setLoadingResults(false);
         }
     };
 
@@ -131,38 +113,7 @@ const VotePage = () => {
         return (
             <div className="vote-page">
                 <h2>{isNewVote ? 'شكراً لك! تم حفظ تقييمك' : 'لقد قمت بالتصويت مسبقاً'}</h2>
-                {loadingResults && !generalRatings ? (
-                    <div className="loading">
-                        جاري تحميل النتائج...
-                        {resultsError && (
-                            <div style={{ marginTop: '1rem' }}>
-                                <div>{resultsError}</div>
-                                <button className="submit-btn" onClick={fetchGeneralRatings} style={{ marginTop: '0.5rem' }}>
-                                    إعادة المحاولة
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                    <>
-                        <ResultsView userRatings={userRatings} generalRatingsOverride={generalRatings} />
-                        {resultsError && (
-                            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                                {resultsError}
-                                <div>
-                                    <button className="submit-btn" onClick={fetchGeneralRatings} style={{ marginTop: '0.5rem' }}>
-                                        إعادة المحاولة
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-                {loadingResults && generalRatings && (
-                    <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.9rem', color: '#94a3b8' }}>
-                        جاري تحديث النتائج...
-                    </div>
-                )}
+                <ResultsView userRatings={userRatings} generalRatingsOverride={generalRatings} />
                 <button className="submit-btn" onClick={() => navigate('/results')} style={{ marginTop: '2rem' }}>
                     شاهد النتائج العامة
                 </button>

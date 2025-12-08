@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import ResultsView from './ResultsView';
@@ -36,10 +36,6 @@ const ResultsPage = () => {
     })();
 
     const [averageRatings, setAverageRatings] = useState(initial);
-    const [loading, setLoading] = useState(!hasFreshCache); // No spinner if cache is fresh
-    const [isUpdating, setIsUpdating] = useState(hasFreshCache); // show small update notice when refreshing cache
-    const [error, setError] = useState(null);
-    const timeoutRef = useRef(null);
 
     const normalize = (value) => {
         const n = Number(value);
@@ -48,15 +44,6 @@ const ResultsPage = () => {
     };
 
     const fetchRatings = useCallback(async () => {
-        setError(null);
-        setIsUpdating(hasFreshCache);
-        if (!hasFreshCache) setLoading(true);
-
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-            setError('وقت التحميل طال، تحقق من الاتصال ثم أعد المحاولة.');
-        }, 7000);
-
         try {
             const querySnapshot = await getDocs(collection(db, "ratings"));
             let total = { humble: 0, considerate: 0, kind: 0, smart: 0 };
@@ -95,52 +82,16 @@ const ResultsPage = () => {
             }
         } catch (error) {
             console.error("Error fetching ratings:", error);
-            setError('تعذر تحميل النتائج، حاول مجدداً.');
-        } finally {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            setLoading(false);
-            setIsUpdating(false);
         }
-    }, [hasFreshCache]);
+    }, []);
 
     useEffect(() => {
         fetchRatings();
-        return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
     }, [fetchRatings]);
 
-    if (loading) {
-        return (
-            <div className="loading">
-                جاري تحميل النتائج...
-                {error && (
-                    <div style={{ marginTop: '1rem' }}>
-                        <div>{error}</div>
-                        <button className="submit-btn" onClick={() => window.location.reload()}>
-                            إعادة المحاولة
-                        </button>
-                    </div>
-                )}
-            </div>
-        );
-    }
-
-    // For the public results page, we might only want to show the "General Rating"
-    // So we can pass a dummy userRatings or modify ResultsView to handle missing userRatings
     return (
         <div className="results-page">
             <h2>النتائج العامة</h2>
-            {isUpdating && (
-                <div style={{ textAlign: 'center', marginBottom: '0.75rem', fontSize: '0.9rem', color: '#94a3b8' }}>
-                    جاري تحديث النتائج...
-                </div>
-            )}
-            {error && (
-                <div className="loading" style={{ marginBottom: '1rem' }}>
-                    {error}
-                </div>
-            )}
             <ResultsView userRatings={null} generalRatingsOverride={averageRatings} />
         </div>
     );
