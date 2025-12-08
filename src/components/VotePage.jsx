@@ -13,18 +13,22 @@ const VotePage = () => {
     const [isNewVote, setIsNewVote] = useState(false);
 
     useEffect(() => {
-        // Check if this is the first reset (one-time reset to initial state)
-        const resetDone = localStorage.getItem('appResetDone');
+        // Reset app version - change this to trigger a reset
+        const APP_VERSION = '2.0.0';
+        const storedVersion = localStorage.getItem('appVersion');
         
-        if (!resetDone) {
-            // First time: reset app to initial state (one-time only)
+        // If version changed or first time, reset app
+        if (!storedVersion || storedVersion !== APP_VERSION) {
+            // Reset app to initial state
             localStorage.removeItem('hasVoted');
             localStorage.removeItem('userRatings');
             localStorage.removeItem('generalRatings');
             localStorage.removeItem('ratingsTimestamp');
+            localStorage.removeItem('appResetDone');
             
-            // Mark that reset has been done
+            // Mark that reset has been done and store new version
             localStorage.setItem('appResetDone', 'true');
+            localStorage.setItem('appVersion', APP_VERSION);
             
             // Reset state to initial values
             setHasVoted(false);
@@ -81,10 +85,16 @@ const VotePage = () => {
                 console.log("Ratings data from Firebase:", ratingsData);
                 // Realtime Database returns an object with keys
                 Object.values(ratingsData).forEach((data) => {
+                    // Handle both new and old field names for compatibility
                     const humble = normalize(data.humble);
                     const considerate = normalize(data.considerate);
-                    const kind = normalize(data.kind);
-                    const smart = normalize(data.smart);
+                    // Try both 'kind' and 'nice' for backward compatibility
+                    const kind = normalize(data.kind !== undefined ? data.kind : data.nice);
+                    // Try both 'smart' and 'intelligent' for backward compatibility
+                    const smart = normalize(data.smart !== undefined ? data.smart : data.intelligent);
+                    
+                    console.log("Processing rating:", { humble, considerate, kind, smart, raw: data });
+                    
                     const isValid = [humble, considerate, kind, smart].every((v) => v !== null);
 
                     if (isValid) {
@@ -93,6 +103,8 @@ const VotePage = () => {
                         total.kind += kind;
                         total.smart += smart;
                         count++;
+                    } else {
+                        console.warn("Invalid rating data:", data, { humble, considerate, kind, smart });
                     }
                 });
             }

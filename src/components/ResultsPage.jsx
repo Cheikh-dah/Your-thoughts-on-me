@@ -51,10 +51,16 @@ const ResultsPage = () => {
                 
                 // Realtime Database returns an object with keys
                 Object.entries(ratingsData).forEach(([key, data]) => {
+                    // Handle both new and old field names for compatibility
                     const humble = normalize(data.humble);
                     const considerate = normalize(data.considerate);
-                    const kind = normalize(data.kind);
-                    const smart = normalize(data.smart);
+                    // Try both 'kind' and 'nice' for backward compatibility
+                    const kind = normalize(data.kind !== undefined ? data.kind : data.nice);
+                    // Try both 'smart' and 'intelligent' for backward compatibility
+                    const smart = normalize(data.smart !== undefined ? data.smart : data.intelligent);
+                    
+                    console.log(`Processing rating for key ${key}:`, { humble, considerate, kind, smart, raw: data });
+                    
                     const isValid = [humble, considerate, kind, smart].every((v) => v !== null);
 
                     if (isValid) {
@@ -65,7 +71,7 @@ const ResultsPage = () => {
                         total.smart += smart;
                         count++;
                     } else {
-                        console.warn(`Invalid rating data for key ${key}:`, data);
+                        console.warn(`Invalid rating data for key ${key}:`, data, { humble, considerate, kind, smart });
                     }
                 });
             } else {

@@ -42,13 +42,23 @@ const RatingCard = ({ onVoteComplete }) => {
             
             // Save to Realtime Database in the background (non-blocking)
             // This way if Firebase is slow or fails, the user still sees their results
-            push(ref(db, "ratings"), {
+            const dataToSave = {
                 ...ratings,
                 timestamp: Date.now(),
                 deviceId: navigator.userAgent // Simple device fingerprinting
-            })
+            };
+            console.log("Saving to Firebase:", dataToSave);
+            console.log("Ratings breakdown:", {
+                humble: ratings.humble,
+                considerate: ratings.considerate,
+                kind: ratings.kind,
+                smart: ratings.smart
+            });
+            
+            push(ref(db, "ratings"), dataToSave)
             .then((ref) => {
                 console.log("Successfully saved to Firebase with key:", ref.key);
+                console.log("Saved data:", dataToSave);
             })
             .catch((e) => {
                 console.error("Error saving to Firebase (non-critical): ", e);
