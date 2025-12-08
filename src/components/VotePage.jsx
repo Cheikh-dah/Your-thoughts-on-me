@@ -131,39 +131,11 @@ const VotePage = () => {
         }
     };
 
-    const handleReset = () => {
-        // Clear all localStorage data
-        localStorage.removeItem('hasVoted');
-        localStorage.removeItem('userRatings');
-        localStorage.removeItem('generalRatings');
-        localStorage.removeItem('ratingsTimestamp');
-        
-        // Reset state
-        setHasVoted(false);
-        setUserRatings(null);
-        setGeneralRatings(null);
-        setIsNewVote(false);
-        
-        // Reload the page to ensure clean state
-        window.location.reload();
-    };
-
     if (hasVoted && userRatings) {
         return (
             <div className="vote-page">
                 <h2>{isNewVote ? 'شكراً لك! تم حفظ تقييمك' : 'لقد قمت بالتصويت مسبقاً'}</h2>
                 <ResultsView userRatings={userRatings} generalRatingsOverride={generalRatings} />
-                <button 
-                    className="submit-btn" 
-                    onClick={handleReset}
-                    style={{ 
-                        marginTop: '2rem', 
-                        backgroundColor: '#ef4444',
-                        background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'
-                    }}
-                >
-                    إعادة ضبط التطبيق
-                </button>
             </div>
         );
     }
