@@ -6,7 +6,8 @@ import ResultsView from './ResultsView';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const ResultsPage = () => {
-    const getInitialRatings = useCallback(() => {
+    // Get initial ratings from cache if available, otherwise use defaults
+    const getInitialRatings = () => {
         const cachedRatings = localStorage.getItem('generalRatings');
         const ratingsTimestamp = localStorage.getItem('ratingsTimestamp');
 
@@ -14,7 +15,7 @@ const ResultsPage = () => {
             const timestamp = parseInt(ratingsTimestamp, 10);
             const now = Date.now();
 
-            // Use cached data if it's fresh
+            // Use cached data if it's fresh (less than 5 minutes)
             if (now - timestamp < CACHE_DURATION) {
                 try {
                     return JSON.parse(cachedRatings);
@@ -26,16 +27,9 @@ const ResultsPage = () => {
             }
         }
         return { humble: 50, considerate: 50, kind: 50, smart: 50 };
-    }, []);
+    };
 
-    const initial = getInitialRatings();
-    const hasFreshCache = (() => {
-        const ts = localStorage.getItem('ratingsTimestamp');
-        if (!ts) return false;
-        return Date.now() - parseInt(ts, 10) < CACHE_DURATION;
-    })();
-
-    const [averageRatings, setAverageRatings] = useState(initial);
+    const [averageRatings, setAverageRatings] = useState(getInitialRatings());
 
     const normalize = (value) => {
         const n = Number(value);
@@ -45,16 +39,18 @@ const ResultsPage = () => {
 
     const fetchRatings = useCallback(async () => {
         try {
-            console.log("Fetching ratings from Firebase...");
+            console.log("Fetching ratings from Firebase Realtime Database...");
             const snapshot = await get(ref(db, "ratings"));
             let total = { humble: 0, considerate: 0, kind: 0, smart: 0 };
             let count = 0;
+            const allRatings = []; // Store all ratings for debugging
 
             if (snapshot.exists()) {
                 const ratingsData = snapshot.val();
-                console.log("Ratings data from Firebase:", ratingsData);
+                console.log("Raw ratings data from Firebase:", ratingsData);
+                
                 // Realtime Database returns an object with keys
-                Object.values(ratingsData).forEach((data) => {
+                Object.entries(ratingsData).forEach(([key, data]) => {
                     const humble = normalize(data.humble);
                     const considerate = normalize(data.considerate);
                     const kind = normalize(data.kind);
@@ -62,16 +58,22 @@ const ResultsPage = () => {
                     const isValid = [humble, considerate, kind, smart].every((v) => v !== null);
 
                     if (isValid) {
+                        allRatings.push({ key, humble, considerate, kind, smart });
                         total.humble += humble;
                         total.considerate += considerate;
                         total.kind += kind;
                         total.smart += smart;
                         count++;
+                    } else {
+                        console.warn(`Invalid rating data for key ${key}:`, data);
                     }
                 });
+            } else {
+                console.log("No ratings found in Firebase database");
             }
 
-            console.log(`Total count: ${count}, Totals:`, total);
+            console.log(`Found ${count} valid ratings:`, allRatings);
+            console.log(`Totals:`, total);
 
             if (count > 0) {
                 const newRatings = {
@@ -81,7 +83,9 @@ const ResultsPage = () => {
                     smart: Math.round(total.smart / count),
                 };
 
-                console.log("New average ratings:", newRatings);
+                console.log(`Calculated average ratings (from ${count} ratings):`, newRatings);
+                console.log(`Calculation: humble=${total.humble}/${count}=${newRatings.humble}, considerate=${total.considerate}/${count}=${newRatings.considerate}, kind=${total.kind}/${count}=${newRatings.kind}, smart=${total.smart}/${count}=${newRatings.smart}`);
+                
                 setAverageRatings(newRatings);
 
                 // Cache the results
@@ -89,8 +93,10 @@ const ResultsPage = () => {
                 localStorage.setItem('ratingsTimestamp', Date.now().toString());
             } else {
                 // If no data from database, clear cache and use defaults
+                console.log("No valid ratings found in Firebase, clearing cache and using default values (50%)");
                 localStorage.removeItem('generalRatings');
                 localStorage.removeItem('ratingsTimestamp');
+                // Force update to default values
                 setAverageRatings({ humble: 50, considerate: 50, kind: 50, smart: 50 });
             }
         } catch (error) {

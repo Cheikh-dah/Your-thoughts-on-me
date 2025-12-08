@@ -2,12 +2,12 @@ import React from 'react';
 import './ResultsView.css';
 
 const ResultsView = ({ userRatings, generalRatingsOverride }) => {
-    // Mock general ratings or use override
+    // Use override if provided, otherwise default to 50% for all ratings
     const generalRatings = generalRatingsOverride || {
-        humble: 75,
-        considerate: 60,
-        kind: 85,
-        smart: 90,
+        humble: 50,
+        considerate: 50,
+        kind: 50,
+        smart: 50,
     };
 
     const renderBar = (label, value, color) => (

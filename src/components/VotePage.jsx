@@ -13,23 +13,44 @@ const VotePage = () => {
     const [isNewVote, setIsNewVote] = useState(false);
 
     useEffect(() => {
-        const voted = localStorage.getItem('hasVoted');
-        const savedRatings = localStorage.getItem('userRatings');
-        const cachedGeneralRatings = localStorage.getItem('generalRatings');
-        const ratingsTimestamp = localStorage.getItem('ratingsTimestamp');
+        // Check if this is the first reset (one-time reset to initial state)
+        const resetDone = localStorage.getItem('appResetDone');
         
-        if (voted && savedRatings) {
-            setHasVoted(true);
-            setUserRatings(JSON.parse(savedRatings));
+        if (!resetDone) {
+            // First time: reset app to initial state (one-time only)
+            localStorage.removeItem('hasVoted');
+            localStorage.removeItem('userRatings');
+            localStorage.removeItem('generalRatings');
+            localStorage.removeItem('ratingsTimestamp');
             
-            // Show cached general ratings immediately if available and not too old (less than 5 minutes)
-            if (cachedGeneralRatings) {
-                const timestamp = ratingsTimestamp ? parseInt(ratingsTimestamp) : 0;
-                const now = Date.now();
-                const fiveMinutes = 5 * 60 * 1000;
+            // Mark that reset has been done
+            localStorage.setItem('appResetDone', 'true');
+            
+            // Reset state to initial values
+            setHasVoted(false);
+            setUserRatings(null);
+            setGeneralRatings(null);
+            setIsNewVote(false);
+        } else {
+            // Normal operation: restore previous state from localStorage
+            const voted = localStorage.getItem('hasVoted');
+            const savedRatings = localStorage.getItem('userRatings');
+            const cachedGeneralRatings = localStorage.getItem('generalRatings');
+            const ratingsTimestamp = localStorage.getItem('ratingsTimestamp');
+            
+            if (voted && savedRatings) {
+                setHasVoted(true);
+                setUserRatings(JSON.parse(savedRatings));
                 
-                if (now - timestamp < fiveMinutes) {
-                    setGeneralRatings(JSON.parse(cachedGeneralRatings));
+                // Show cached general ratings if available and fresh (less than 5 minutes)
+                if (cachedGeneralRatings && ratingsTimestamp) {
+                    const timestamp = parseInt(ratingsTimestamp, 10);
+                    const now = Date.now();
+                    const fiveMinutes = 5 * 60 * 1000;
+                    
+                    if (now - timestamp < fiveMinutes) {
+                        setGeneralRatings(JSON.parse(cachedGeneralRatings));
+                    }
                 }
             }
         }
@@ -93,23 +114,24 @@ const VotePage = () => {
                 localStorage.setItem('generalRatings', JSON.stringify(newRatings));
                 localStorage.setItem('ratingsTimestamp', Date.now().toString());
             } else {
-                // If no data from database, clear cache
+                // If no data from database, clear cache and use default values (50%)
+                console.log("No valid ratings found in Firebase, clearing cache and using default values (50%)");
                 localStorage.removeItem('generalRatings');
                 localStorage.removeItem('ratingsTimestamp');
-                setGeneralRatings(null);
+                setGeneralRatings({ humble: 50, considerate: 50, kind: 50, smart: 50 });
             }
         } catch (error) {
             console.error("Error fetching ratings:", error);
-            // On error, clear cache
+            // On error, clear cache and use default values (50%)
             localStorage.removeItem('generalRatings');
             localStorage.removeItem('ratingsTimestamp');
-            setGeneralRatings(null);
+            setGeneralRatings({ humble: 50, considerate: 50, kind: 50, smart: 50 });
         }
     };
 
     const handleVoteComplete = async (ratings) => {
         try {
-            // Update state first to show the results immediately
+            // Update state and save to localStorage (normal operation after reset)
             localStorage.setItem('hasVoted', 'true');
             localStorage.setItem('userRatings', JSON.stringify(ratings));
             setHasVoted(true);
