@@ -14,7 +14,7 @@ const VotePage = () => {
 
     useEffect(() => {
         // Reset app version - change this to trigger a reset
-        const APP_VERSION = '2.0.4';
+        const APP_VERSION = '2.0.5';
         const storedVersion = localStorage.getItem('appVersion');
         
         // If version changed or first time, reset app
