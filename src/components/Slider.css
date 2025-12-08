@@ -1,0 +1,114 @@
+.slider-container {
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+.slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.label-side {
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.trait-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.trait-image:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.label-left,
+.label-right {
+    position: absolute;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 3px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    bottom: -5px;
+    z-index: 2;
+}
+
+.label-left {
+    color: #22c55e;
+    /* Green */
+}
+
+.label-right {
+    color: #ef4444;
+    /* Red */
+}
+
+.percentage-text {
+    position: absolute;
+    top: -20px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    animation: popIn 0.2s ease-out;
+}
+
+.percentage-left {
+    color: #22c55e;
+    /* Green (Visual Right) */
+}
+
+.percentage-right {
+    color: #ef4444;
+    /* Red (Visual Left) */
+}
+
+@keyframes popIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.slider-input {
+    -webkit-appearance: none;
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    outline: none;
+    transition: background 0.3s;
+}
+
+.slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    transition: transform 0.2s;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
