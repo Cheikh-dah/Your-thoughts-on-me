@@ -91,7 +91,7 @@ const ResultsPage = () => {
 
     return (
         <div className="results-page">
-            <h2>النتائج العامة</h2>
+            <h2>التقيم العام</h2>
             <ResultsView userRatings={null} generalRatingsOverride={averageRatings} />
         </div>
     );
