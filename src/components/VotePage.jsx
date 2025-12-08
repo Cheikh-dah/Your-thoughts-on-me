@@ -114,9 +114,6 @@ const VotePage = () => {
             <div className="vote-page">
                 <h2>{isNewVote ? 'شكراً لك! تم حفظ تقييمك' : 'لقد قمت بالتصويت مسبقاً'}</h2>
                 <ResultsView userRatings={userRatings} generalRatingsOverride={generalRatings} />
-                <button className="submit-btn" onClick={() => navigate('/results')} style={{ marginTop: '2rem' }}>
-                    شاهد النتائج العامة
-                </button>
             </div>
         );
     }
