@@ -1,5 +1,16 @@
 import React from 'react';
+import Slider from './Slider';
 import './ResultsView.css';
+
+// Import images
+import humbleImg from '../../picts/humble.jpeg';
+import narcissistImg from '../../picts/narcessist.jpeg';
+import empethyImg from '../../picts/empethy.jpeg';
+import bullyImg from '../../picts/bully.jpeg';
+import niceImg from '../../picts/nice.jpeg';
+import badImg from '../../picts/bad.jpeg';
+import stupidImg from '../../picts/stupid.jpeg';
+import smartImg from '../../picts/smart.jpeg';
 
 const ResultsView = ({ userRatings, generalRatingsOverride }) => {
     // Use override if provided, otherwise default to 50% for all ratings
@@ -10,39 +21,92 @@ const ResultsView = ({ userRatings, generalRatingsOverride }) => {
         smart: 50,
     };
 
-    const renderBar = (label, value, color) => (
-        <div className="result-item">
-            <div className="result-label">
-                <span>{label}</span>
-                <span>{value}%</span>
-            </div>
-            <div className="progress-bar-bg">
-                <div
-                    className="progress-bar-fill"
-                    style={{ width: `${value}%`, backgroundColor: color }}
-                ></div>
-            </div>
-        </div>
-    );
-
     return (
         <div className="results-container">
             {userRatings && (
                 <div className="results-panel">
                     <h3>تقييمك</h3>
-                    {renderBar('تواضع', userRatings.humble, '#3b82f6')}
-                    {renderBar('مراعاة المشاعر', userRatings.considerate, '#3b82f6')}
-                    {renderBar('طيبة', userRatings.kind, '#3b82f6')}
-                    {renderBar('ذكاء', userRatings.smart, '#3b82f6')}
+                    <div className="rating-card">
+                        <Slider
+                            leftLabel="متواضع"
+                            rightLabel="نرجسي"
+                            leftImage={humbleImg}
+                            rightImage={narcissistImg}
+                            value={userRatings.humble}
+                            onChange={() => {}}
+                            disabled={true}
+                        />
+                        <Slider
+                            leftLabel="مراعي لمشاعر الاخرين"
+                            rightLabel="متنمر"
+                            leftImage={empethyImg}
+                            rightImage={bullyImg}
+                            value={userRatings.considerate}
+                            onChange={() => {}}
+                            disabled={true}
+                        />
+                        <Slider
+                            leftLabel="طيب"
+                            rightLabel="شرير"
+                            leftImage={niceImg}
+                            rightImage={badImg}
+                            value={userRatings.kind}
+                            onChange={() => {}}
+                            disabled={true}
+                        />
+                        <Slider
+                            leftLabel="ذكي"
+                            rightLabel="غبي"
+                            leftImage={smartImg}
+                            rightImage={stupidImg}
+                            value={userRatings.smart}
+                            onChange={() => {}}
+                            disabled={true}
+                        />
+                    </div>
                 </div>
             )}
 
             <div className="results-panel">
                 <h3>التقيم العام</h3>
-                {renderBar('تواضع', generalRatings.humble, '#10b981')}
-                {renderBar('مراعاة المشاعر', generalRatings.considerate, '#10b981')}
-                {renderBar('طيبة', generalRatings.kind, '#10b981')}
-                {renderBar('ذكاء', generalRatings.smart, '#10b981')}
+                <div className="rating-card">
+                    <Slider
+                        leftLabel="متواضع"
+                        rightLabel="نرجسي"
+                        leftImage={humbleImg}
+                        rightImage={narcissistImg}
+                        value={generalRatings.humble}
+                        onChange={() => {}}
+                        disabled={true}
+                    />
+                    <Slider
+                        leftLabel="مراعي لمشاعر الاخرين"
+                        rightLabel="متنمر"
+                        leftImage={empethyImg}
+                        rightImage={bullyImg}
+                        value={generalRatings.considerate}
+                        onChange={() => {}}
+                        disabled={true}
+                    />
+                    <Slider
+                        leftLabel="طيب"
+                        rightLabel="شرير"
+                        leftImage={niceImg}
+                        rightImage={badImg}
+                        value={generalRatings.kind}
+                        onChange={() => {}}
+                        disabled={true}
+                    />
+                    <Slider
+                        leftLabel="ذكي"
+                        rightLabel="غبي"
+                        leftImage={smartImg}
+                        rightImage={stupidImg}
+                        value={generalRatings.smart}
+                        onChange={() => {}}
+                        disabled={true}
+                    />
+                </div>
             </div>
         </div>
     );

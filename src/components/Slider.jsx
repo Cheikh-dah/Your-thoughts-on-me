@@ -1,7 +1,7 @@
 import React from 'react';
 import './Slider.css';
 
-const Slider = ({ leftLabel, rightLabel, leftImage, rightImage, value, onChange }) => {
+const Slider = ({ leftLabel, rightLabel, leftImage, rightImage, value, onChange, disabled = false }) => {
     const leftPercentage = 100 - value;
     const rightPercentage = value;
 
@@ -11,7 +11,7 @@ const Slider = ({ leftLabel, rightLabel, leftImage, rightImage, value, onChange 
                 <div className="label-side">
                     {leftImage && <img src={leftImage} alt={leftLabel} className="trait-image" />}
                     <span className="label-left">{leftLabel}</span>
-                    {value < 50 && <span className="percentage-text percentage-left">{leftPercentage}%</span>}
+                    {value <= 50 && <span className="percentage-text percentage-left">{leftPercentage}%</span>}
                 </div>
                 <input
                     type="range"
@@ -20,11 +20,12 @@ const Slider = ({ leftLabel, rightLabel, leftImage, rightImage, value, onChange 
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     className="slider-input"
+                    disabled={disabled}
                 />
                 <div className="label-side">
                     <span className="label-right">{rightLabel}</span>
                     {rightImage && <img src={rightImage} alt={rightLabel} className="trait-image" />}
-                    {value > 50 && <span className="percentage-text percentage-right">{rightPercentage}%</span>}
+                    {value >= 50 && <span className="percentage-text percentage-right">{rightPercentage}%</span>}
                 </div>
             </div>
         </div>
